@@ -22,6 +22,7 @@ extern uint8_t is_master;
 #define _LOWER 1
 #define _RAISE 2
 #define _ADJUST 3
+#define _ADJUST 3
 
 enum custom_keycodes {
   QWERTY = SAFE_RANGE,
@@ -30,6 +31,7 @@ enum custom_keycodes {
   ADJUST,
 };
 
+uint16_t hold_timers[MATRIX_ROWS][MATRIX_COLS];
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
@@ -196,13 +198,44 @@ void iota_gfx_task_user(void) {
 }
 #endif//SSD1306OLED
 
-static bool lower_pressed = false;
-static uint16_t lower_pressed_time = 0;
-static bool raise_pressed = false;
-static uint16_t raise_pressed_time = 0;
+
+void type_code(uint8_t keycode) {
+  register_code(keycode);
+  unregister_code(keycode);
+}
+
+void set_en(void) {
+  type_code(KC_LANG2);
+  type_code(KC_MHEN);
+}
+
+void set_kana(void) {
+  type_code(KC_LANG1);
+  type_code(KC_HENK);
+}
+
+uint16_t get_timer(keyrecord_t *record) {
+  return hold_timers[record->event.key.row][record->event.key.col];
+}
+
+bool is_tap(keyrecord_t *record) {
+  return get_timer(record) && timer_elapsed(get_timer(record)) < TAPPING_TERM;
+}
+
+void tap_action(keyrecord_t *record, void(*cb)(void)) {
+  if (record->event.pressed) {
+    return;
+  }
+  if (is_tap(record)) {
+    cb();
+    return;
+  }
+}
+
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
+    hold_timers[record->event.key.row][record->event.key.col] = timer_read();
 #ifdef SSD1306OLED
 //    set_keylog(keycode, record);
     set_typespeed();
@@ -218,45 +251,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
       break;
     case LOWER:
+      tap_action(record, set_en);
       if (record->event.pressed) {
-        lower_pressed = true;
-        lower_pressed_time = record->event.time;
-
         layer_on(_LOWER);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       } else {
         layer_off(_LOWER);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-
-        if (lower_pressed && (TIMER_DIFF_16(record->event.time, lower_pressed_time) < TAPPING_TERM)) {
-            register_code(KC_LANG2);
-            register_code(KC_MHEN);
-            unregister_code(KC_LANG2);
-            unregister_code(KC_MHEN);
-        }
-
-        lower_pressed = false;
       }
       return false;
       break;
     case RAISE:
+      tap_action(record, set_kana);
       if (record->event.pressed) {
-        raise_pressed = true;
-        raise_pressed_time = record->event.time;
-
         layer_on(_RAISE);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       } else {
         layer_off(_RAISE);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-
-        if (raise_pressed && (TIMER_DIFF_16(record->event.time, raise_pressed_time) < TAPPING_TERM)) {
-            register_code(KC_LANG1);
-            register_code(KC_HENK);
-            unregister_code(KC_LANG1);
-            unregister_code(KC_HENK);
-        }
-        raise_pressed = false;
       }
       return false;
       break;
@@ -267,12 +279,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           layer_off(_ADJUST);
         }
         return false;
-        break;
-    default:
-        if (record->event.pressed) {
-          lower_pressed = true;
-          raise_pressed = true;
-        }
         break;
   }
   return true;
