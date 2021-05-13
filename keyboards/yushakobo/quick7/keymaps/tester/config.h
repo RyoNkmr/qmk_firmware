@@ -16,8 +16,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #undef RGBLIGHT_LIMIT_VAL
-#define RGBLIGHT_LIMIT_VAL 150 /* The maximum brightness level */
+#define RGBLIGHT_LIMIT_VAL 100 /* The maximum brightness level */
 #define RGBLIGHT_LAYERS
+#define RGBLIGHT_EFFECT_RGB_TEST
 #define RGBLIGHT_MAX_LAYERS 4
 #define RGBLIGHT_LED_MAP {\
     0, 1, 2,\

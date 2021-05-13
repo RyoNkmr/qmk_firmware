@@ -115,14 +115,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 }
 
 void encoder_update_user(uint8_t index, bool clockwise) {
-    if (index == 0) { // Left encoder
+    if (index == 1) { // Left encoder
         if (clockwise) {
             tap_code(KC_VOLU);
         } else {
             tap_code(KC_VOLD);
         }
     }
-    else if (index == 1) { // Right encoder
+    else if (index == 0) { // Right encoder
         if (clockwise) {
             rgblight_decrease_hue_noeeprom();
         } else {
@@ -146,6 +146,8 @@ const rgblight_segment_t* const PROGMEM quick7_rgb_layers[] = RGBLIGHT_LAYERS_LI
 );
 
 void keyboard_post_init_user(void){
+    rgblight_enable_noeeprom();
+    rgblight_mode_noeeprom(RGBLIGHT_MODE_RGB_TEST);
     rgblight_layers = quick7_rgb_layers;
     rgblight_sethsv(HSV_WHITE);
 }
