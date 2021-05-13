@@ -22,7 +22,6 @@ extern uint8_t is_master;
 #define _LOWER 1
 #define _RAISE 2
 #define _ADJUST 3
-#define _ADJUST 3
 
 enum custom_keycodes {
   QWERTY = SAFE_RANGE,
